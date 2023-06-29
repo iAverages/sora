@@ -8,7 +8,7 @@ export const POST = async (request: Request, { params }: { params: { userid: str
         const record = await prisma.requestBin.create({
             data: {
                 body: body,
-                headers: Array.from(request.headers).join(""),
+                headers: JSON.stringify(Object.fromEntries(request.headers)),
                 userId: params.userid,
             },
         });
