@@ -11,7 +11,9 @@ const MyApp: AppType<{ session: Session | null }> = ({ Component, pageProps: { s
         <SessionProvider session={session}>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
                 <Nav />
-                <Component {...pageProps} />
+                <div className={"mx-8 my-4"}>
+                    <Component {...pageProps} />
+                </div>
             </ThemeProvider>
         </SessionProvider>
     );

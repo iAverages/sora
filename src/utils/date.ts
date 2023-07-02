@@ -80,3 +80,31 @@ export function timeAgo(dateParam: Date | string | number | null | undefined) {
 
     return getFormattedDate(date); // 10. January 2017. at 10:20
 }
+
+export const timeUntil = (date: Date | string | number | null | undefined) => {
+    if (!date) {
+        return null;
+    }
+
+    const dateObj = typeof date === "object" ? date : new Date(date);
+    const now = new Date();
+    const diff = dateObj.getTime() - now.getTime();
+    const diffDays = Math.ceil(diff / (1000 * 3600 * 24));
+    const diffHours = Math.ceil(diff / (1000 * 3600));
+    const diffMinutes = Math.ceil(diff / (1000 * 60));
+    const diffSeconds = Math.ceil(diff / 1000);
+
+    if (diffSeconds < 60) {
+        return `${diffSeconds} seconds`;
+    }
+
+    if (diffMinutes < 60) {
+        return `${diffMinutes} minutes`;
+    }
+
+    if (diffHours < 24) {
+        return `${diffHours} hours`;
+    }
+
+    return `${diffDays} days`;
+};
