@@ -5,8 +5,8 @@ type MapNonNullable<T> = {
 };
 
 type ShowPropChild<T> =
-    | ((item: T extends ReadonlyArray<any> ? MapNonNullable<T> : NonNullable<T>) => ReactElement)
-    | ReactElement;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ((item: T extends ReadonlyArray<any> ? MapNonNullable<T> : NonNullable<T>) => ReactElement) | ReactElement;
 
 type ShowProps<T> = {
     when: T | undefined | null | false;

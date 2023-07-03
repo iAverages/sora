@@ -28,7 +28,14 @@ export const env = createEnv({
      * `NEXT_PUBLIC_`.
      */
     client: {
-        // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
+        NEXT_PUBLIC_HOST: z
+            .preprocess(
+                // This makes Vercel deployments not fail if you don't set PUBLIC_HOST
+                (str) => process.env.VERCEL_URL ?? str,
+                // VERCEL_URL doesn't include `https` so it cant be validated as a URL
+                process.env.VERCEL ? z.string().min(0) : z.string().url()
+            )
+            .default("http://localhost:3000"),
     },
 
     /**
@@ -42,6 +49,7 @@ export const env = createEnv({
         NEXTAUTH_URL: process.env.NEXTAUTH_URL,
         GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
         GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
+        NEXT_PUBLIC_HOST: process.env.NEXT_PUBLIC_HOST,
     },
     /**
      * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

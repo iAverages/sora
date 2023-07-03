@@ -1,4 +1,5 @@
 import { ChevronDown, Copy } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { Show } from "~/components/show";
 import { Button } from "~/components/ui/button";
@@ -11,7 +12,8 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { Separator } from "~/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { RouterOutputs, api } from "~/utils/api";
+import { env } from "~/env.mjs";
+import { type RouterOutputs, api } from "~/utils/api";
 import { timeAgo, timeUntil } from "~/utils/date";
 
 const formatHeaders = (headers: string) => {
@@ -29,12 +31,33 @@ const formatHeaders = (headers: string) => {
             formatted[key] = [value];
         }
     }
-    return JSON.stringify(formatted, null, 4);
+    return formatted;
 };
 
 const Request = () => {
     const requestId = useRouter().query.id as string;
+    const { data: session } = useSession();
     const { data } = api.requestbin.get.useQuery({ id: requestId }, { enabled: !!requestId });
+
+    const handleCurlExport = (exportData: RouterOutputs["requestbin"]["all"]["data"][0]) => {
+        const rawHeadersArray = JSON.parse(exportData.headers) as string[];
+        const parsedHeaders = formatHeaders(exportData.headers);
+        const headers = rawHeadersArray
+            .map((header, index) => {
+                if (index % 2 === 0) {
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    return `-H '${header}: ${parsedHeaders[header]!.join(", ")}'`;
+                }
+                return "";
+            })
+            .join(" ");
+        // const headers = "";
+        const curl = `curl -X POST ${env.NEXT_PUBLIC_HOST}/api/callback/${session?.user.id ?? ""} -d '${
+            exportData.body
+        }' ${headers}`;
+
+        void navigator.clipboard.writeText(curl);
+    };
 
     const handleWebhookthingExport = (exportData: RouterOutputs["requestbin"]["all"]["data"][0]) => {
         const webhookthing = {
@@ -74,8 +97,17 @@ const Request = () => {
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent>
-                                            <DropdownMenuItem onClick={handleWebhookthingExport}>
+                                            <DropdownMenuItem
+                                                className={"cursor-pointer"}
+                                                onClick={() => handleWebhookthingExport(request)}
+                                            >
                                                 webhookthing
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                className={"cursor-pointer"}
+                                                onClick={() => handleCurlExport(request)}
+                                            >
+                                                cURL
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
@@ -93,7 +125,7 @@ const Request = () => {
                                 </CardHeader>
                                 <CardContent>
                                     <div>
-                                        <pre>{formatHeaders(request.headers)}</pre>
+                                        <pre>{JSON.stringify(formatHeaders(request.headers), null, 4)}</pre>
                                     </div>
                                 </CardContent>
                             </>
